@@ -1,3 +1,4 @@
+//https://blog.csdn.net/qq_28052455/article/details/132023703
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
@@ -77,5 +78,21 @@ contract Test {
         return address(uint160(uint(hash)));
     }
 
+
+//内联汇编
+    event Deploy(address) ;
+
+    function deploy(bytes memory _bytecode) external payable returns(address addr) {
+    
+        assembly {
+        
+            addr := create(callvalue( ), add(_bytecode, 0x20), mload(_bytecode) )
+        }
+
+        
+        require(addr != address(0), "deploy failed");
+        
+        emit Deploy(addr);
+    }
 
  }
