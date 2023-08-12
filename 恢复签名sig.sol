@@ -45,5 +45,12 @@ contract VerfySig {
     //hash = "0x9c97d796ed69b7e69790ae723f51163056db3d55a7a6a82065780460162d4812";
     // let sig = await ethereum.request({method:"personal_sign",params: [account,hash]})
     //sig = '0x0dff23376ec8c56d1f4feb0e0f15c3448946fa6d8690ffb3b4cc0661958bc04b547d23a94e13982e98dbd01cc180902033cfadb404bafe2b850ad5f1c3c66f3a1b'
+/*
+let message = 'ok'
+message = web3.utils.stringToHex('\x19Ethereum Signed Message:\n32') + 
+web3.utils.keccak256(message).split('0x')[1];
+SignedMessageHash = web3.utils.keccak256(message);
+*/
+
 }
 
