@@ -87,43 +87,101 @@ abstract contract Proxy {
 
 contract testProxy is Proxy {
 
+    uint256 public x = 1;
+
     address implementation ;
 
-    constructor(address logic) {
+    // constructor(address logic) {
 
-        implementation = logic;
-    }
+    //     implementation = logic;
+    // }
 
-   function _implementation() internal view virtual override returns (address impl) {
+    function _implementation() internal view virtual override returns (address impl) {
 
         return implementation;      
     
+    }
+
+    function setImplementation(address Logic) external {
+
+        implementation = Logic;
     }
 
 }
 
 contract Caller {
 
+    // uint256 public x = 1;
     string public retBytes;
-    function callTest(testProxy test) public returns (bool) {
+    bytes public retBytes1;
+    uint256 public u;
+    function callTest(testProxy test) public  {
         (bool success, bytes memory r) = address(test).call(abi.encodeWithSignature("doSomething()"));
         require(success);
         // retBytes = r;
 
-       retBytes = abi.decode(r,(string));
-        return true;
+       (retBytes,  u) = abi.decode(r, (string,uint256));
+       retBytes1 = r;
+
+    }
+
+    function _delegate(address implementation) internal virtual {
+
+        // bytes memory _calldata =  abi.encodeWithSelector(bytes4(keccak256("doSomething")), implementation);
+        
+        // uint len = _calldata.length;
+
+        //bytes memory _calldata = '1354f1020000000000000000000000005a86858aa3b595fd6663c2296741ef4cd8bc4d01';
+        assembly {
+
+
+            
+            let result := delegatecall(gas(), implementation, 0, calldatasize(), 0, 0)
+
+            // Copy the returned data.
+            returndatacopy(0, 0, returndatasize())
+
+            switch result
+            // delegatecall returns 0 on error.
+            case 0 {
+                revert(0, returndatasize())
+            }
+            default {
+                return(0, returndatasize())
+            }
+        }
+    }
+
+    function getMemory(address implementation) public pure returns(bytes memory,uint) {
+
+        bytes memory _calldata =  abi.encodeWithSelector(bytes4(keccak256("doSomething")), implementation);
+        
+        return (_calldata, _calldata.length);
     }
 }
 
 contract Target {
 
-  uint public x;
-  function doSomething() public pure returns(bytes memory ) {
-    bytes memory r = '0x5ae401dc0000000000000000000000000000000000000000000000000000000064ddaeed00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e4472b43f3000000000000000000000000000000000000000000000000257b21493e4850000000000000000000000000000000000000000000000000000fbf7a081aa36a1b0000000000000000000000000000000000000000000000000000000000000080000000000000000000000000458dff5acbbac1bfe51c3680726d499e53d6ba60000000000000000000000000000000000000000000000000000000000000000200000000000000000000000055d398326f99059ff775485246999027b31979550000000000000000000000007a27f0419289d703896877594b93a023828585e400000000000000000000000000000000000000000000000000000000';
-    // bytes memory r = 'hello';
-    
-    return r;
+  uint256 public x = 5;
+  function doSomething() public  returns(string memory ,uint256) {
+ 
+     bytes memory r = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAA';
+
+     r = "hello" ;
+    // assembly{
+
+    //     mstore(0x80,0x20)
+    //     mstore(0xa0,0x05)  // five sizes of hello
+    //     mstore(0xc0,"helloo")
+
+    //     return(0x80,0x60) // total 0x60 bytes
+
+    // }
+    x = x * 2;
+    return (string(r),x);
   
   }
 
 }
+
+//先部署 Target =》 testProxy =〉Caller
