@@ -157,22 +157,50 @@ contract AssemblyArrays {
 
       getAddressSlot(_IMPLEMENTATION_SLOT).value = _Implementation;
   }
-  
-  function doSomething() public pure returns(string memory ,uint) {
+
+
+  function doSomething() public pure returns(bytes memory encodeWithSignature ,bytes memory encodeWithSelector, bytes memory encode,bytes memory encodepack) {
  
     //  bytes memory r = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAA';
 
-    assembly{
+    encodeWithSignature = abi.encodeWithSignature("doSomething(string,string)", "hello","aaa");
+    encodeWithSelector = abi.encodeWithSelector(bytes4(keccak256("doSomething(string,string)")),"hello","aaa"); 
+    encode = abi.encode(1,2,"hello");
+    encodepack = abi.encodePacked(uint(0x1),uint(0x2),string('hello'),string('world'));
 
-        mstore(0x80,0x20)
-        mstore(0xa0,0x05)  // five sizes of hello
-        mstore(0xc0,"helloo")
 
-        return(0x80,0x60) // total 0x60 bytes
+    // return (r0,r1);
 
-    }
+
+    // assembly{
+
+    //     mstore(0x80,0x20)
+    //     mstore(0xa0,0x05)  // five sizes of hello
+    //     mstore(0xc0,"helloo")
+
+    //     return(0x80,0x60) // total 0x60 bytes
+
+    // }
   }
 
+  function doMemory() external pure returns(string memory ret) {
+
+      assembly{
+
+        ret := mload(0x40) //给空闲指针
+      
+        mstore(ret, 0x20) // ret数据长度
+        
+        mstore(add(ret,0x20), 0x0c) // ret数据长度
+     
+        mstore(add(ret,0x40), "hello world") //ret 数据
+
+        mstore(0x40,add(ret,0x60))
+
+        return(ret, add(0x20,0x60))
+      }
+     
+  }
+    
+
 }
-
-
