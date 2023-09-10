@@ -115,12 +115,19 @@ contract testProxy is Proxy {
 contract Target1 {
 
    uint public x = 3;
+   bytes public rData = "AAABBB";
 
-    function setX() external {
+    function setX() external returns(bytes memory r){
 
         x = x +2;
+        r = rData;
     }
 
+    function setReturnData(bytes calldata data) external returns(bytes memory){
+
+        rData = data;
+        return rData;
+    }
 
 }
 
@@ -134,5 +141,56 @@ contract Target2 {
     }
 
 }
+
+interface Iproxy {
+    function setX() external view returns(bytes memory);
+}
+
+contract test{
+
+    bytes public x;
+
+    address private tagetAddress;
+
+    constructor (address addr){
+
+        tagetAddress = addr;
+    }
+
+    function setX() public{
+
+        bytes memory _calldata = abi.encodeWithSignature("setX()");
+        ( bool success, bytes memory r1 )= tagetAddress.call(_calldata);
+
+        require(success, "not success !");
+        x = (abi.decode(r1,(bytes)));
+    }
+
+
+    function setReturnData(bytes calldata data) external {
+
+        bytes memory _calldata = abi.encodeWithSignature("setReturnData(bytes)",data);
+        ( bool success, bytes memory r1 )= tagetAddress.call(_calldata);
+
+        require(success, "not success !");
+        x = abi.decode(r1,(bytes));
+    }
+
+    function getrData() external  returns(bytes memory r){
+
+        bytes memory _calldata = abi.encodeWithSignature("rData()");
+        ( bool success, bytes memory r1 )= tagetAddress.call(_calldata);
+
+        require(success, "not success !");
+        r = abi.decode(r1,(bytes));
+        x = r;
+
+
+    }
+
+
+}
+
+//先部署 Target =》 testProxy =〉Caller
 
 //先部署 Target =》 testProxy =〉Caller
